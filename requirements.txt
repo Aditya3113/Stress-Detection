@@ -4,6 +4,8 @@ pydantic
 pandas
 scikit-learn
 langchain
+langchain-core
 langchain-google-genai
+langchain-huggingface
 python-dotenv
 jinja2

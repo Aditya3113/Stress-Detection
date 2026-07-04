@@ -1,16 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from pydantic import BaseModel
+from typing import List
 import pandas as pd
 import pickle
 import os
 from dotenv import load_dotenv
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -44,8 +44,21 @@ class StudentMetrics(BaseModel):
     Family_Support: float       
     Month: float                
 
-def get_agent_counselor_response(data: dict):
-    llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.5)
+class ChatTurn(BaseModel):
+    role: str
+    content: str
+
+class ChatPayload(BaseModel):
+    message: str
+    history: List[ChatTurn]
+    context: dict
+
+def get_initial_counselor_response(data: dict):
+    llm = HuggingFaceEndpoint(
+        repo_id="alexandreteles/mental-mistral-7b-instruct", 
+        temperature=0.3,
+        max_new_tokens=250
+    )
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", (
@@ -57,7 +70,7 @@ def get_agent_counselor_response(data: dict):
             "- Exam Pressure: {Exam_Pressure}/10\n"
             "- Attendance: {Attendance}%\n"
             "Gently validate their current situation without being clinical. "
-            "Offer one actionable, comforting suggestion based on their metrics (e.g., if sleep is low, mention rest), "
+            "Offer one actionable, comforting suggestion based on their metrics, "
             "and ask an open, comforting question to guide them into a supportive conversation. Keep your response brief."
         )),
         ("user", "Hello counselor, I've been feeling pretty overwhelmed lately.")
@@ -89,7 +102,7 @@ async def analyze_stress_metrics(metrics: StudentMetrics):
             }
         else:
             student_context = metrics.model_dump()
-            agent_reply = get_agent_counselor_response(student_context)
+            agent_reply = get_initial_counselor_response(student_context)
             return {
                 "status": "high_stress",
                 "message": agent_reply
@@ -98,5 +111,42 @@ async def analyze_stress_metrics(metrics: StudentMetrics):
     except Exception as e:
         import traceback
         print("❌ DETECTED ENDPOINT CRASH ERROR:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chat")
+async def conversational_chat(payload: ChatPayload):
+    try:
+        llm = HuggingFaceEndpoint(
+            repo_id="alexandreteles/mental-mistral-7b-instruct", 
+            temperature=0.3,
+            max_new_tokens=250
+        )
+        
+        context_str = "\n".join([f"- {key}: {value}" for key, value in payload.context.items()])
+        
+        sys_msg = (
+            "You are an empathetic, professional student wellness counselor. "
+            "Keep your answers concise, conversational, and warm. "
+            "Here is the student's telemetry context to personalize your advice:\n"
+            f"{context_str}"
+        )
+        
+        messages = [("system", sys_msg)]
+        
+        for turn in payload.history:
+            messages.append((turn.role, turn.content))
+            
+        messages.append(("user", payload.message))
+        
+        prompt = ChatPromptTemplate.from_messages(messages)
+        chain = prompt | llm | StrOutputParser()
+        
+        response = chain.invoke({})
+        return {"reply": response}
+        
+    except Exception as e:
+        import traceback
+        print("❌ CHAT ENDPOINT CRASH:")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

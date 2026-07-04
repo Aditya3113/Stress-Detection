@@ -9,6 +9,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
+    <!-- Header / Navbar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -23,8 +24,10 @@
         </div>
     </header>
 
+    <!-- Main Workspace -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
+        <!-- Left Panel: Analytics Form -->
         <section class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900 mb-1">Lifestyle Metrics Ingestion</h2>
@@ -33,7 +36,7 @@
                 <form id="metricsForm" class="space-y-5">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Student Profile</label>
-                        <select id="Student_Type" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                        <select id="Student_Type" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
                             <option value="school">School Student</option>
                             <option value="college">College Student</option>
                             <option value="working_student">Working Student</option>
@@ -85,7 +88,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Academic Academic Month</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Academic Month</label>
                             <select id="Month" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
                                 <option value="1">January (Semester Beginning)</option>
                                 <option value="4">April (Mid Terms)</option>
@@ -104,6 +107,7 @@
             </button>
         </section>
 
+        <!-- Right Panel: Dynamic Interface Output -->
         <section class="lg:col-span-7 bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden min-h-[500px]">
             
             <div id="placeholderState" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
@@ -134,6 +138,7 @@
                 </div>
 
                 <div id="chatStream" class="flex-1 p-4 overflow-y-auto space-y-4 font-normal text-sm">
+                    <!-- Stream content injected here -->
                 </div>
 
                 <div class="p-3 bg-slate-900 border-t border-slate-800 flex items-center space-x-2">
@@ -149,6 +154,9 @@
 
     <script>
         const API_BASE = window.location.origin;
+        
+        let currentContext = {};
+        let chatHistory = [];
 
         async function executeDiagnostic() {
             const payload = {
@@ -187,6 +195,9 @@
                     placeholder.classList.add("hidden");
                     chatConsole.classList.remove("hidden");
                     
+                    currentContext = payload;
+                    chatHistory = [{ role: "assistant", content: result.message }];
+                    
                     chatStream.innerHTML = "";
                     appendMessage("assistant", result.message);
                 }
@@ -208,14 +219,22 @@
                 ? 'bg-indigo-600 text-white rounded-br-none' 
                 : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/50'
             }`;
-            bubble.innerText = text;
+            
+            bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
             bubbleWrapper.appendChild(bubble);
             stream.appendChild(bubbleWrapper);
             stream.scrollTop = stream.scrollHeight;
         }
 
-        function dispatchAgentMessage() {
+        document.getElementById("chatInputMessage").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                dispatchAgentMessage();
+            }
+        });
+
+        async function dispatchAgentMessage() {
             const inputField = document.getElementById("chatInputMessage");
             const msg = inputField.value.trim();
             if (!msg) return;
@@ -223,9 +242,29 @@
             appendMessage("user", msg);
             inputField.value = "";
 
-            setTimeout(() => {
-                appendMessage("assistant", "I hear you, and I am right here with you. Can you elaborate on what has been occupying your thoughts most during this stressful block?");
-            }, 1000);
+            try {
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: msg,
+                        history: chatHistory,
+                        context: currentContext
+                    })
+                });
+
+                if (!response.ok) throw new Error("Chat endpoint failed");
+                const data = await response.json();
+
+                appendMessage("assistant", data.reply);
+
+                chatHistory.push({ role: "user", content: msg });
+                chatHistory.push({ role: "assistant", content: data.reply });
+
+            } catch (err) {
+                console.error(err);
+                appendMessage("assistant", "I'm having trouble connecting right now. Could you send that again?");
+            }
         }
     </script>
 </body>
