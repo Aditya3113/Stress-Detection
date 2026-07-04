@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraWellness - Student Stress Analytics & Guidance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                    <i class="fa-solid fa-heart-pulse text-xl"></i>
+                </div>
+                <span class="text-xl font-semibold tracking-tight text-slate-900">AuraWellness</span>
+            </div>
+            <div class="text-sm text-slate-500 font-medium">
+                Student Stress Analytics Platform
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <section class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900 mb-1">Lifestyle Metrics Ingestion</h2>
+                <p class="text-xs text-slate-500 mb-6">Input daily student analytics to evaluate physiological and environmental stress indicators.</p>
+                
+                <form id="metricsForm" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Student Profile</label>
+                        <select id="Student_Type" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="school">School Student</option>
+                            <option value="college">College Student</option>
+                            <option value="working_student">Working Student</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <label class="font-semibold text-slate-600 uppercase tracking-wider">Daily Sleep Hours</label>
+                                <span id="sleep_val" class="font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">7.0 hrs</span>
+                            </div>
+                            <input type="range" id="Sleep_Hours" min="2" max="12" step="0.5" value="7.0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('sleep_val').innerText = this.value + ' hrs'">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <label class="font-semibold text-slate-600 uppercase tracking-wider">Daily Study Hours</label>
+                                <span id="study_val" class="font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">4.0 hrs</span>
+                            </div>
+                            <input type="range" id="Study_Hours" min="0" max="16" step="0.5" value="4.0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('study_val').innerText = this.value + ' hrs'">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <label class="font-semibold text-slate-600 uppercase tracking-wider">Social Media Usage</label>
+                                <span id="social_val" class="font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">2.0 hrs</span>
+                            </div>
+                            <input type="range" id="Social_Media_Hours" min="0" max="12" step="0.5" value="2.0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('social_val').innerText = this.value + ' hrs'">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <label class="font-semibold text-slate-600 uppercase tracking-wider">Academic Attendance</label>
+                                <span id="attendance_val" class="font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">85%</span>
+                            </div>
+                            <input type="range" id="Attendance" min="0" max="100" step="1" value="85" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('attendance_val').innerText = this.value + '%'">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Exam Pressure (1-10)</label>
+                                <input type="number" id="Exam_Pressure" min="1" max="10" value="5" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Family Support (1-10)</label>
+                                <input type="number" id="Family_Support" min="1" max="10" value="7" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Academic Academic Month</label>
+                            <select id="Month" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="1">January (Semester Beginning)</option>
+                                <option value="4">April (Mid Terms)</option>
+                                <option value="6">June (Term End Exams)</option>
+                                <option value="10">October (Mid Terms)</option>
+                                <option value="12">December (Final Examinations)</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <button type="button" onclick="executeDiagnostic()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm py-3 rounded-lg shadow-sm transition-colors mt-6 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-microchip animate-pulse"></i>
+                <span>Run Diagnostic Assessment</span>
+            </button>
+        </section>
+
+        <section class="lg:col-span-7 bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden min-h-[500px]">
+            
+            <div id="placeholderState" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
+                    <i class="fa-solid fa-chart-line text-2xl"></i>
+                </div>
+                <h3 class="text-base font-semibold text-slate-900 mb-1">Awaiting Telemetry</h3>
+                <p class="text-sm text-slate-500 max-w-sm">Execute the pipeline assessment diagnostic on the left to analyze real-time cognitive stress metrics and activate live counseling guidance wrappers.</p>
+            </div>
+
+            <div id="healthyState" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center bg-emerald-50/30">
+                <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm">
+                    <i class="fa-solid fa-shield-heart text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Optimal Balance Confirmed</h3>
+                <p id="healthyMessage" class="text-sm text-slate-600 max-w-md bg-white border border-slate-100 rounded-xl p-4 shadow-sm"></p>
+            </div>
+
+            <div id="chatConsoleState" class="hidden flex-1 flex flex-col h-full bg-slate-950">
+                <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                        <span class="text-xs font-semibold uppercase tracking-widest text-slate-300">Live Agent Handoff Active</span>
+                    </div>
+                    <div class="text-[10px] bg-amber-500/10 text-amber-400 font-mono px-2 py-0.5 rounded border border-amber-500/20">
+                        High Stress Pipeline Flag
+                    </div>
+                </div>
+
+                <div id="chatStream" class="flex-1 p-4 overflow-y-auto space-y-4 font-normal text-sm">
+                </div>
+
+                <div class="p-3 bg-slate-900 border-t border-slate-800 flex items-center space-x-2">
+                    <input type="text" id="chatInputMessage" placeholder="Communicate your thoughts with the wellness assistant..." class="flex-1 bg-slate-800 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    <button onclick="dispatchAgentMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg w-10 h-10 flex items-center justify-center shadow transition-colors">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function executeDiagnostic() {
+            const payload = {
+                Student_Type: document.getElementById("Student_Type").value,
+                Sleep_Hours: parseFloat(document.getElementById("Sleep_Hours").value),
+                Study_Hours: parseFloat(document.getElementById("Study_Hours").value),
+                Social_Media_Hours: parseFloat(document.getElementById("Social_Media_Hours").value),
+                Attendance: parseFloat(document.getElementById("Attendance").value),
+                Exam_Pressure: parseFloat(document.getElementById("Exam_Pressure").value),
+                Family_Support: parseFloat(document.getElementById("Family_Support").value),
+                Month: parseFloat(document.getElementById("Month").value)
+            };
+
+            const placeholder = document.getElementById("placeholderState");
+            const healthyBox = document.getElementById("healthyState");
+            const chatConsole = document.getElementById("chatConsoleState");
+            const chatStream = document.getElementById("chatStream");
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Backend server diagnostic loop down");
+                const result = await response.json();
+
+                if (result.status === "low_stress") {
+                    chatConsole.classList.add("hidden");
+                    placeholder.classList.add("hidden");
+                    healthyBox.classList.remove("hidden");
+                    document.getElementById("healthyMessage").innerText = result.message;
+                } else {
+                    healthyBox.classList.add("hidden");
+                    placeholder.classList.add("hidden");
+                    chatConsole.classList.remove("hidden");
+                    
+                    chatStream.innerHTML = "";
+                    appendMessage("assistant", result.message);
+                }
+
+            } catch (err) {
+                alert("Diagnostic execution error occurred connecting to server loop.");
+                console.error(err);
+            }
+        }
+
+        function appendMessage(sender, text) {
+            const stream = document.getElementById("chatStream");
+            const bubbleWrapper = document.createElement("div");
+            bubbleWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const bubble = document.createElement("div");
+            bubble.className = `max-w-[85%] rounded-xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
+                sender === 'user' 
+                ? 'bg-indigo-600 text-white rounded-br-none' 
+                : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/50'
+            }`;
+            bubble.innerText = text;
+
+            bubbleWrapper.appendChild(bubble);
+            stream.appendChild(bubbleWrapper);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        function dispatchAgentMessage() {
+            const inputField = document.getElementById("chatInputMessage");
+            const msg = inputField.value.trim();
+            if (!msg) return;
+
+            appendMessage("user", msg);
+            inputField.value = "";
+
+            setTimeout(() => {
+                appendMessage("assistant", "I hear you, and I am right here with you. Can you elaborate on what has been occupying your thoughts most during this stressful block?");
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
