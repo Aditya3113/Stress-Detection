@@ -10,7 +10,8 @@ import pickle
 import os
 from dotenv import load_dotenv
 
-from langchain_huggingface import HuggingFaceEndpoint
+# --- Updated LangChain Core & Gemini Imports ---
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -18,6 +19,7 @@ load_dotenv()
 
 app = FastAPI(title="Agentic Student Wellness API")
 
+# Enable CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,15 +27,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Setup Template Rendering for the Dashboard
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_dashboard(request: Request):
+    # Fixed Starlette rendering signature
     return templates.TemplateResponse(request=request, name="index.html")
 
+# Load the comprehensive pipeline model
 with open("artifacts/stress_pipeline_model.pkl", "rb") as f:
     model = pickle.load(f)
 
+# --- Pydantic Schemas ---
 class StudentMetrics(BaseModel):
     Student_Type: str          
     Sleep_Hours: float
@@ -53,12 +59,9 @@ class ChatPayload(BaseModel):
     history: List[ChatTurn]
     context: dict
 
+# --- Agentic Handoff Functions ---
 def get_initial_counselor_response(data: dict):
-    llm = HuggingFaceEndpoint(
-        repo_id="alexandreteles/mental-mistral-7b-instruct", 
-        temperature=0.3,
-        max_new_tokens=250
-    )
+    llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.5)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", (
@@ -79,6 +82,7 @@ def get_initial_counselor_response(data: dict):
     chain = prompt | llm | StrOutputParser()
     return chain.invoke(data)
 
+# --- API Endpoints ---
 @app.post("/analyze")
 async def analyze_stress_metrics(metrics: StudentMetrics):
     try:
@@ -117,12 +121,9 @@ async def analyze_stress_metrics(metrics: StudentMetrics):
 @app.post("/chat")
 async def conversational_chat(payload: ChatPayload):
     try:
-        llm = HuggingFaceEndpoint(
-            repo_id="alexandreteles/mental-mistral-7b-instruct", 
-            temperature=0.3,
-            max_new_tokens=250
-        )
+        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0.5)
         
+        # Format the dictionary into a clean bulleted list to avoid LangChain curly-brace errors
         context_str = "\n".join([f"- {key}: {value}" for key, value in payload.context.items()])
         
         sys_msg = (
