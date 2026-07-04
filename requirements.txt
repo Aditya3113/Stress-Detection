@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+pandas
+scikit-learn
+langchain
+langchain-google-genai
+python-dotenv
+jinja2
